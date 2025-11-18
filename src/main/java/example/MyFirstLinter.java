@@ -150,6 +150,7 @@ public class MyFirstLinter {
 
     private static void hasEqualsAndHashcode(ClassNode classNode){
         List<MethodNode> methods = (List<MethodNode>) classNode.methods;
+        System.out.println("Starting Check for has equals() and has hashCode()");
         boolean hasEquals = false;
         boolean hasHashcode = false;
         for (MethodNode method : methods) {
@@ -159,11 +160,12 @@ public class MyFirstLinter {
             if (method.name.equals("hashCode")){
                 hasHashcode = true;
             }
+        }
+        if (hasEquals!= hasHashcode){
+            System.out.printf("%s class defines either equals() or hashCode()\n",classNode.name);
+        }
 
-        }
-        if (hasEquals && hasHashcode){
-            System.out.printf("%s class has equals and hashCode\n",classNode.name);
-        }
+        System.out.println("Check for has equals() and has hashCode() Completed");
     }
 
 

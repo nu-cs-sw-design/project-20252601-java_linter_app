@@ -1,6 +1,6 @@
 package targets;
 
-public class class1 {
+public class class1 implements interface1 {
     public int x = 5;
     public final int y = 10;
 

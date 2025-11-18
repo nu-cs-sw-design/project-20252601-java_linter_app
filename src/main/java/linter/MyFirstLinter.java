@@ -49,14 +49,13 @@ public class MyFirstLinter {
 //
 //            printMethods(classNode);
 
+            System.out.println();
             hasEqualsAndHashcode(classNode);
-
+            System.out.println();
             hasPublicMutableFields(classNode);
-
+            System.out.println();
             redundantInterfaces(classNode);
-
-            System.out.println();
-            System.out.println();
+            System.out.println("--------------------------------------------------");
         }
     }
 

@@ -54,6 +54,8 @@ public class MyFirstLinter {
 //            printMethods(classNode);
 
             hasEqualsAndHashcode(classNode);
+
+            hasPublicMutableFields(classNode);
         }
     }
 
@@ -162,5 +164,19 @@ public class MyFirstLinter {
         if (hasEquals && hasHashcode){
             System.out.printf("%s class has equals and hashCode\n",classNode.name);
         }
+    }
+
+
+    private static void hasPublicMutableFields(ClassNode classNode){
+        List<FieldNode> fields = (List<FieldNode>) classNode.fields;
+        System.out.println("Starting Check for Public Mutable Fields");
+
+        for (FieldNode field : fields) {
+            if (((field.access & Opcodes.ACC_PUBLIC) != 0) && ((field.access & Opcodes.ACC_FINAL) == 0)) {
+                System.out.println(field.name + " field is public and mutable\n");
+            }
+        }
+
+        System.out.println("Check for Public Mutable Fields Completed");
     }
 }

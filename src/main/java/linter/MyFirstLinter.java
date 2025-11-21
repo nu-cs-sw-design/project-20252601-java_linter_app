@@ -217,4 +217,40 @@ public class MyFirstLinter {
         return interfacesSet;
 
     }
+
+    private static boolean beginsWithSpecialCharacter(String name) {
+        return !(name.charAt(0) == '_' || name.charAt(0) == '$');
+    }
+
+    private static boolean beginsWithUppercase(String name) {
+        return Character.isUpperCase(name.charAt(0));
+    }
+
+    private static boolean beginsWithLowercase(String name) {
+        return Character.isLowerCase(name.charAt(0));
+    }
+
+    private static boolean hasAllUppercase(String name) {
+        for (char c : name.toCharArray()) {
+            if (Character.isLowerCase(c))
+                return false;
+        }
+        return true;
+    }
+
+    private static boolean hasNumber(String name) {
+        for (char c : name.toCharArray()) {
+            if (Character.isDigit(c))
+                return true;
+        }
+        return false;
+    }
+
+    private static boolean hasSpecialCharacter(String name) {
+        for (char c : name.toCharArray()) {
+            if (c == '_' || c == '$')
+                return true;
+        }
+        return false;
+    }
 }

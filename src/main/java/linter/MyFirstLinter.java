@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.sun.jdi.LocalVariable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -47,7 +48,7 @@ public class MyFirstLinter {
 //
 //            printFields(classNode);
 //
-//            printMethods(classNode);
+            printMethods(classNode);
 
             System.out.println();
             hasEqualsAndHashcode(classNode);
@@ -55,6 +56,8 @@ public class MyFirstLinter {
             hasPublicMutableFields(classNode);
             System.out.println();
             redundantInterfaces(classNode);
+            System.out.println();
+            variableNameChecks(classNode);
             System.out.println("--------------------------------------------------");
         }
     }
@@ -215,7 +218,55 @@ public class MyFirstLinter {
             superClassName = Type.getObjectType(superClassNode.superName).getClassName();
         }
         return interfacesSet;
+    }
 
+    private static void variableNameChecks(ClassNode classNode) {
+        // no starting with special characters in any names (_,$)
+        // Class, Interface Name first character uppercase
+        // All other names start with lowercase
+        // Constants should be uppercase
+
+        determineChecks(classNode.name, "class_name");
+        List<FieldNode> fields = (List<FieldNode>) classNode.fields;
+        for (FieldNode field : fields) {
+            if(((field.access & Opcodes.ACC_FINAL) == 0)){
+                determineChecks(field.name, "constant");
+            } else {
+                determineChecks(field.name, "instance_variable");
+            }
+        }
+        List<MethodNode> methods = (List<MethodNode>) classNode.methods;
+
+        for (int i = 1; i < methods.size(); i++) {
+            MethodNode method = methods.get(i);
+            determineChecks(method.name, "method_name");
+
+            for (LocalVariableNode localVariable : method.localVariables) {
+                determineChecks(localVariable.name, "local_variable_name");
+            }
+        }
+
+    }
+
+    private static void determineChecks(String variable, String type ){
+        if (type.equals("class_name")) {
+            // class needs to start with a upper case, no special chars/or numbers allwoed
+            if (!beginsWithUppercase(variable)|| hasSpecialCharacter(variable) || hasNumber(variable)) {
+                System.out.println(variable + " and does not pass class or interface name check");
+            }
+
+        } else if (type.equals("local_variable_name") || type.equals("instance_variable_name") || type.equals("method_name")) {
+            // local variables need to start with lower case and cannot have special chars or  numbers
+            if(!beginsWithLowercase(variable) || hasSpecialCharacter(variable) || hasNumber(variable)) {
+                System.out.println(variable + " does not pass variable name check");
+            }
+
+        } else if (type.equals("constant")) {
+            // Only uppercase allowed, no lowercase, numbers, or special characters
+            if (!hasAllUppercase(variable) || hasSpecialCharacter(variable) || hasNumber(variable) ){
+                System.out.println(variable + " does not pass constant name check");
+            }
+        }
     }
 
     private static boolean beginsWithSpecialCharacter(String name) {

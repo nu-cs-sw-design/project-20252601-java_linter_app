@@ -1,2 +1,190 @@
 @startuml
+
+
+package "Presentation Layer"  {
+    interface LinterUI {
+        + run(): void
+        + displayResults(violations: List<Violation>): void
+    }
+
+    class ConsoleUI {
+        - engine: LintEngine
+        - reader: BytecodeReader
+        + run(): void
+        + displayResults(violations: List<Violation>): void
+        - getUserInput(): LinterConfig
+        - readFileBytes(filePath: String): byte[]
+    }
+}
+
+
+package "Domain Layer"  {
+
+    package "Internal Representation"  {
+        class ClassInfo {
+            - name: String
+            - fields: List<FieldInfo>
+            - methods: List<MethodInfo>
+            - interfaces: List<String>
+            - superClass: String
+            - isPublic: boolean
+            + getName(): String
+            + getFields(): List<FieldInfo>
+            + getMethods(): List<MethodInfo>
+            + hasMethod(name: String): boolean
+        }
+
+        class MethodInfo {
+            - name: String
+            - className: String
+            - returnType: String
+            - parameters: List<ParameterInfo>
+            - isPublic: boolean
+            - isStatic: boolean
+            - localVariables: List<LocalVariableInfo>
+            + getName(): String
+            + getLocalVariables(): List<LocalVariableInfo>
+        }
+
+        class FieldInfo {
+            - name: String
+            - className: String
+            - type: String
+            - isPublic: boolean
+            - isFinal: boolean
+            + getName(): String
+            + isPublic(): boolean
+            + isFinal(): boolean
+        }
+
+        class LocalVariableInfo {
+            - name: String
+            - type: String
+            + getName(): String
+        }
+
+        class ParameterInfo {
+            - name: String
+            - type: String
+            + getName(): String
+        }
+    }
+
+    interface LintCheck  {
+        + analyze(classes: List<ClassInfo>): List<Violation>
+        + getName(): String
+        + getDescription(): String
+    }
+
+
+    abstract class PerClassLintCheck <<Template Method>> {
+        + {final} analyze(classes: List<ClassInfo>): List<Violation>
+        --
+        <b>Traversal Hook Methods:</b>
+                # checkClass(classInfo: ClassInfo): Optional<Violation>
+                # checkField(field: FieldInfo): Optional<Violation>
+                # checkMethod(method: MethodInfo): Optional<Violation>
+                # checkLocalVariable(variable: LocalVariableInfo, method: MethodInfo):
+    }
+
+    class EqualsHashCodeCheck {
+        - hasEquals: boolean
+        - hasHashCode: boolean
+
+        # checkMethod(method: MethodInfo): List<Violation>
+    }
+
+    class PublicMutableFieldsCheck {
+        - problematicFields: Set<String>
+        # checkField(field: FieldInfo): List<Violation>
+    }
+
+    class NamingConventionCheck {
+        - problematicNames: Set<String>
+        # checkClass(classInfo: ClassInfo): List<Violation>
+        # checkField(field: FieldInfo): List<Violation>
+        # checkMethod(method: MethodInfo):List<Violation>
+        # checkLocalVariable(variable: LocalVariableInfo, method: MethodInfo):
+
+    }
+
+    class RedundantInterfacesCheck {
+        - interfaceCache: Map<String, Set<String>>
+        + analyze(classes: List<ClassInfo>): List<Violation>
+        + getName(): String
+        + getDescription(): String
+    }
+
+    class Violation {
+        - checkName: String
+        - className: String
+        - message: String
+        + toString(): String
+    }
+
+    class LintEngine {
+        - checks: List<LintCheck>
+        + addCheck(check: LintCheck): void
+        + analyzeAll(classes: List<ClassInfo>): List<Violation>
+    }
+}
+
+
+package "Data Source Layer" {
+
+    interface BytecodeReader <<Target>> {
+        + convertClass(bytes: byte[]): ClassInfo
+    }
+
+    class AsmBytecodeReader <<Adapter>> {
+        - adaptee: AsmLibrary
+        + convertClass(bytes: byte[]): ClassInfo
+    }
+
+    class AsmLibrary <<Adaptee>> {
+        + readClassNode(bytes: byte[]): ClassNode
+        + getFields(classNode: ClassNode): List<FieldNode>
+        + getMethods(classNode: ClassNode): List<MethodNode>
+    }
+}
+
+
+LinterUI <|.. ConsoleUI
+ConsoleUI --> LintEngine
+ConsoleUI --> BytecodeReader
+
+
+ClassInfo *-- MethodInfo
+ClassInfo *-- FieldInfo
+MethodInfo *-- LocalVariableInfo
+MethodInfo *-- ParameterInfo
+
+LintCheck <|.. PerClassLintCheck
+PerClassLintCheck <|-- EqualsHashCodeCheck
+PerClassLintCheck <|-- PublicMutableFieldsCheck
+PerClassLintCheck <|-- NamingConventionCheck
+
+LintCheck <|.. RedundantInterfacesCheck
+
+LintEngine o-- LintCheck
+LintEngine --> Violation
+LintEngine --> ClassInfo
+
+BytecodeReader <|.. AsmBytecodeReader
+AsmBytecodeReader o-- AsmLibrary
+
+note right of PerClassLintCheck
+A defined traversal over the class, its methods and its fields.
+Chidlren can override specific checks related to its behavior
+end note
+
+
+
+note left of ConsoleUI
+<b>Flow:</b>
+1. Read .class bytes from user paths
+2. For each file, call reader.convertClass(bytes) -> ClassInfo
+3. Pass all ClassInfo objects to LintEngine.analyzeAll(...)
+end note
+
 @enduml

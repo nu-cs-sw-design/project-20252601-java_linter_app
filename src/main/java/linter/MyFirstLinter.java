@@ -4,13 +4,16 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
+import java.util.HashMap;
 import com.sun.jdi.LocalVariable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
-
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
 // FIXME: this code has TERRIBLE DESIGN all around
 public class MyFirstLinter {
 
@@ -31,17 +34,29 @@ public class MyFirstLinter {
         // TODO: Learn how to create separate Run Configurations so you can run
         // your code on different programs without changing the code each time.
 
-        for (String className : args) {
-            // The 3 steps read in a Java class:
-            // 1. ASM's ClassReader does the heavy lifting of parsing the compiled Java class.
-            ClassReader reader = new ClassReader(className);
+        String folderPath = args[0];
+        Path folder = Paths.get(folderPath);
+        System.out.println("Folder Path: " + folder);
 
-            // 2. ClassNode is just a data container for the parsed class
-            ClassNode classNode = new ClassNode();
+        HashMap<String, ClassNode> allClasses = new HashMap<>();
+        try (Stream<Path> paths = Files.walk(folder)) {
+            paths.filter(Files::isRegularFile)
+                    .filter(path -> path.toString().endsWith(".class"))
+                    .forEach(path -> {
+                        try {
+                            byte[] bytes = Files.readAllBytes(path);
+                            ClassReader reader = new ClassReader(bytes);
+                            ClassNode classNode = new ClassNode();
+                            reader.accept(classNode, ClassReader.EXPAND_FRAMES);
+                            allClasses.put(classNode.name, classNode);
+                        } catch (IOException e) {
+                            System.err.println("Error reading file: " + path);
+                            e.printStackTrace();
+                        }
+                    });
+        }
 
-            // 3. Tell the Reader to parse the specified class and store its data in our ClassNode.
-            // EXPAND_FRAMES means: I want my code to work. (Always pass this flag.)
-            reader.accept(classNode, ClassReader.EXPAND_FRAMES);
+        for (ClassNode classNode : allClasses.values()) {
 
             // Now we can navigate the classNode and look for things we are interested in.
             printClass(classNode);

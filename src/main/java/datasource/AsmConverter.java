@@ -11,6 +11,8 @@ import org.objectweb.asm.tree.MethodNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Adapter class that adapts the ASM library to the DataModelConverter interface.
@@ -22,6 +24,62 @@ public class AsmConverter implements DataModelConverter {
 
     public AsmConverter() {
         this.adaptee = new AsmLibrary();
+    }
+
+    public DependencyInfo convertDependencies(List<ClassInfo> classes) {
+        Map<String, Integer> classNameToIndex = new HashMap<>();
+        for (int i = 0; i < classes.size(); i++) {
+            classNameToIndex.put(classes.get(i).getName(), i);
+        }
+
+        DependencyInfo dependencyInfo = new DependencyInfo(classNameToIndex, classes.size());
+
+        for (ClassInfo classInfo : classes) {
+            String className = classInfo.getName();
+
+            // Analyze IS_A relationships (superclass)
+            if (classInfo.getSuperClass() != null && !classInfo.getSuperClass().isEmpty()) {
+                dependencyInfo.setDependency(className, classInfo.getSuperClass(), DependencyType.IS_A);
+            }
+
+            // Analyze IMPLEMENTS relationships
+            for (String interfaceName : classInfo.getInterfaces()) {
+                dependencyInfo.setDependency(className, interfaceName, DependencyType.IMPLEMENTS);
+            }
+
+            // Analyze HAS_A relationships (fields)
+            for (FieldInfo field : classInfo.getFields()) {
+                String fieldType = field.getType();
+                if (dependencyInfo.getClassIndex(fieldType) != -1) {
+                    dependencyInfo.setDependency(className, fieldType, DependencyType.HAS_A);
+                }
+            }
+
+            // Analyze GENERAL relationships (methods)
+            for (MethodInfo method : classInfo.getMethods()) {
+                // Check return type
+                String returnType = method.getReturnType();
+                if (returnType != null && !returnType.equals("void") && dependencyInfo.getClassIndex(returnType) != -1) {
+                    DependencyType currentType = dependencyInfo.getDependency(className, returnType);
+                    if (currentType == DependencyType.NONE) {
+                        dependencyInfo.setDependency(className, returnType, DependencyType.GENERAL);
+                    }
+                }
+
+                // Check local variables (includes parameters)
+                for (LocalVariableInfo localVar : method.getLocalVariables()) {
+                    String varType = localVar.getType();
+                    if (dependencyInfo.getClassIndex(varType) != -1) {
+                        DependencyType currentType = dependencyInfo.getDependency(className, varType);
+                        if (currentType == DependencyType.NONE) {
+                            dependencyInfo.setDependency(className, varType, DependencyType.GENERAL);
+                        }
+                    }
+                }
+            }
+        }
+
+        return dependencyInfo;
     }
 
     @Override

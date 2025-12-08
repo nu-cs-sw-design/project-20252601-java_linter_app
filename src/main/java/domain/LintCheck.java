@@ -2,6 +2,7 @@ package domain;
 
 import domain.internal_representation.ClassInfo;
 import domain.Violation;
+import domain.internal_representation.Context;
 
 import java.util.List;
 
@@ -11,7 +12,7 @@ import java.util.List;
 public interface LintCheck {
 
 
-    List<Violation> analyze(List<ClassInfo> classes);
+    List<Violation> analyze(Context context);
 
     String getName();
 

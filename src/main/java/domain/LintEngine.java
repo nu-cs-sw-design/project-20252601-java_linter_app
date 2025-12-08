@@ -1,6 +1,6 @@
 package domain;
 
-import domain.internal_representation.ClassInfo;
+import domain.internal_representation.Context;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,12 +26,12 @@ public class LintEngine {
     /**
      * Analyzes all given classes using all added checks.
      */
-    public List<Violation> analyzeAll(List<ClassInfo> classes) {
+    public List<Violation> analyzeAll(Context context) {
         List<Violation> allViolations = new ArrayList<>();
 
         for (LintCheck check : checks) {
             System.out.println("  Running: " + check.getName());
-            List<Violation> violations = check.analyze(classes);
+            List<Violation> violations = check.analyze(context);
             allViolations.addAll(violations);
         }
 

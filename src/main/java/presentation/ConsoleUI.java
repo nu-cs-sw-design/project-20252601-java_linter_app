@@ -3,9 +3,8 @@ package presentation;
 import datasource.DataLoader;
 import datasource.AsmConverter;
 import datasource.DataModelConverter;
-import domain.LintEngine;
+import domain.*;
 import domain.internal_representation.ClassInfo;
-import domain.Violation;
 
 import java.io.IOException;
 import java.util.ArrayList;

@@ -5,5 +5,6 @@ public enum DependencyType {
     IS_A,
     HAS_A,
     IMPLEMENTS,
-    GENERAL
+    GENERAL,
+    HAS_MANY,
 }

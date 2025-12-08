@@ -54,8 +54,8 @@ public class NamingConventionCheck extends PerClassLintCheck {
     protected Optional<Violation> checkMethod(MethodInfo method) {
         String name = method.getName();
 
-        // Skip constructors and special methods
-        if (name.equals("<init>") ||name.equals("<clinit>")) {
+        // Skip constructors
+        if (name.equals("<init>") || name.equals(method.getClassName())) {
             return Optional.empty();
         }
 

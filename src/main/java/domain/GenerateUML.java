@@ -31,10 +31,7 @@ public class GenerateUML implements LintCheck {
             String pumlContent = generatePlantUmlDiagram(context);
             writePlantUmlFile(context.getFolderPath(), pumlContent);
         } catch (Exception e) {
-            violations.add(new Violation(
-                    getName(),
-                    "PackageGeneration",
-                    "Failed to generate PlantUML diagram: " + e.getMessage()
+            violations.add(new Violation(getName(), "PackageGeneration", "Failed to generate PlantUML diagram: " + e.getMessage()
             ));
         }
 
@@ -81,16 +78,13 @@ public class GenerateUML implements LintCheck {
         Files.write(classFile, bytecode);
 
         // Execute genuml command
-        ProcessBuilder processBuilder = new ProcessBuilder(
-                "genuml", "generate", classFile.toString()
-        );
+        ProcessBuilder processBuilder = new ProcessBuilder("genuml", "generate", classFile.toString());
         processBuilder.redirectErrorStream(true);
         Process process = processBuilder.start();
 
-        // Read output
         StringBuilder output = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(process.getInputStream()))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream())))
+        {
             String line;
             while ((line = reader.readLine()) != null) {
                 // Skip @startuml and @enduml lines as we'll add them ourselves
@@ -116,9 +110,7 @@ public class GenerateUML implements LintCheck {
 
             for (ClassInfo toClass : classes) {
                 String toClassName = toClass.getName();
-                DependencyType depType = dependencyInfo.getDependency(
-                        fromClass.getName(), toClass.getName()
-                );
+                DependencyType depType = dependencyInfo.getDependency(fromClass.getName(), toClass.getName());
 
                 String arrow = getPlantUmlArrow(depType);
                 if (arrow != null) {
@@ -137,9 +129,11 @@ public class GenerateUML implements LintCheck {
             case IMPLEMENTS:
                 return "..|>";  // Implementation (implements)
             case HAS_A:
-                return "*--";   // Composition
+                return "-->";   // Instance field
             case GENERAL:
-                return "..>";   // Dependency
+                return "..>";   // Dependency through local variables, params, return types
+            case HAS_MANY:
+                return "-->\"*\""; // instance field with an array [] type
             case NONE:
             default:
                 return null;

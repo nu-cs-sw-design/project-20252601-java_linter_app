@@ -58,52 +58,76 @@ public class AsmConverter implements DataModelConverter {
         for (ClassInfo classInfo : classes) {
             String className = classInfo.getName();
 
-            // Analyze IS_A relationships (superclass)
-            if (classInfo.getSuperClass() != null && !classInfo.getSuperClass().isEmpty()) {
-                dependencyInfo.setDependency(className, classInfo.getSuperClass(), DependencyType.IS_A);
-            }
-
-            // Analyze IMPLEMENTS relationships
-            for (String interfaceName : classInfo.getInterfaces()) {
-                dependencyInfo.setDependency(className, interfaceName, DependencyType.IMPLEMENTS);
-            }
-
-            // Analyze HAS_A relationships (fields)
-            for (FieldInfo field : classInfo.getFields()) {
-                String fieldType = field.getType();
-                if (dependencyInfo.getClassIndex(fieldType) != -1) {
-                    dependencyInfo.setDependency(className, fieldType, DependencyType.HAS_A);
-                }
-            }
-
-            // Analyze GENERAL relationships (methods)
+            // 1) GENERAL relationships (
             for (MethodInfo method : classInfo.getMethods()) {
-                // Check return type
+                // Return type
                 String returnType = method.getReturnType();
-                if (returnType != null && !returnType.equals("void") &&
-                        dependencyInfo.getClassIndex(returnType) != -1) {
-                    DependencyType currentType = dependencyInfo.getDependency(className, returnType);
-                    if (currentType == DependencyType.NONE) {
+                if (returnType != null
+                        && !returnType.equals("void")
+                        && !className.equals(returnType)
+                        && dependencyInfo.getClassIndex(returnType) != -1) {
+
+                    DependencyType current = dependencyInfo.getDependency(className, returnType);
+                    if (current == DependencyType.NONE) {
                         dependencyInfo.setDependency(className, returnType, DependencyType.GENERAL);
                     }
                 }
 
-                // Check local variables (includes parameters)
+                // Local variables (includes parameters)
                 for (LocalVariableInfo localVar : method.getLocalVariables()) {
                     String varType = localVar.getType();
-                    if (dependencyInfo.getClassIndex(varType) != -1) {
-                        DependencyType currentType = dependencyInfo.getDependency(className, varType);
-                        if (currentType == DependencyType.NONE) {
+                    if (!className.equals(varType)
+                            && dependencyInfo.getClassIndex(varType) != -1) {
+
+                        DependencyType current = dependencyInfo.getDependency(className, varType);
+                        if (current == DependencyType.NONE) {
                             dependencyInfo.setDependency(className, varType, DependencyType.GENERAL);
                         }
                     }
                 }
             }
+
+            // 2) HAS_A / HAS_MANY relationships (fields)
+            for (FieldInfo field : classInfo.getFields()) {
+                String fieldType = field.getType();
+
+                //see if is an array
+                boolean isMany = fieldType.endsWith("[]");
+                String targetType = isMany
+                        ? fieldType.substring(0, fieldType.length() - 2)  // strip "[]"
+                        : fieldType;
+
+                // ignore self-dependencies and unknown types
+                if (!className.equals(targetType)
+                        && dependencyInfo.getClassIndex(targetType) != -1) {
+
+                    DependencyType depType = isMany
+                            ? DependencyType.HAS_MANY
+                            : DependencyType.HAS_A;
+
+                    // overwrite GENERAL if it was there; later IMPLEMENTS / IS_A still overwrite this
+                    dependencyInfo.setDependency(className, targetType, depType);
+                }
+            }
+
+            // 3) IMPLEMENTS relationships (interfaces)
+            for (String interfaceName : classInfo.getInterfaces()) {
+                if (!className.equals(interfaceName)) {
+                    dependencyInfo.setDependency(className, interfaceName, DependencyType.IMPLEMENTS);
+                }
+            }
+
+            // 4) IS_A relationships (superclass)
+            String superClass = classInfo.getSuperClass();
+            if (superClass != null
+                    && !superClass.isEmpty()
+                    && !className.equals(superClass)) {
+                dependencyInfo.setDependency(className, superClass, DependencyType.IS_A);
+            }
         }
 
         return dependencyInfo;
     }
-
 
     private String getSimpleName(String fullname) {
         int lastDot = fullname.lastIndexOf('.');
@@ -135,7 +159,7 @@ public class AsmConverter implements DataModelConverter {
      */
     private FieldInfo convertField(FieldNode fieldNode, String className) {
         String fieldName = fieldNode.name;
-        String type = Type.getType(fieldNode.desc).getClassName();
+        String type = getSimpleName(Type.getType(fieldNode.desc).getClassName());
         boolean isPublic = (fieldNode.access & Opcodes.ACC_PUBLIC) != 0;
         boolean isFinal = (fieldNode.access & Opcodes.ACC_FINAL) != 0;
 
@@ -147,7 +171,7 @@ public class AsmConverter implements DataModelConverter {
      */
     private MethodInfo convertMethod(MethodNode methodNode, String className) {
         String methodName = methodNode.name;
-        String returnType = Type.getReturnType(methodNode.desc).getClassName();
+        String returnType = getSimpleName(Type.getReturnType(methodNode.desc).getClassName());
         boolean isPublic = (methodNode.access & Opcodes.ACC_PUBLIC) != 0;
         boolean isStatic = (methodNode.access & Opcodes.ACC_STATIC) != 0;
 
@@ -156,7 +180,7 @@ public class AsmConverter implements DataModelConverter {
             for (LocalVariableNode localVar : methodNode.localVariables) {
                 // Skip 'this' parameter for non-static methods
                 if (!localVar.name.equals("this")) {
-                    String varType = Type.getType(localVar.desc).getClassName();
+                    String varType = getSimpleName(Type.getType(localVar.desc).getClassName());
                     localVariables.add(new LocalVariableInfo(localVar.name, varType));
                 }
             }

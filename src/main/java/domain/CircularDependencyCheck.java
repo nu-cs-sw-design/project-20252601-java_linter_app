@@ -49,11 +49,7 @@ public class CircularDependencyCheck implements LintCheck {
             cycle.add(currentClass);
 
             String cyclePath = String.join(" -> ", cycle);
-            violations.add(new Violation(
-                    getName(),
-                    currentClass,
-                    "Circular dependency detected: " + cyclePath
-            ));
+            violations.add(new Violation(getName(),currentClass, "Circular dependency detected: " + cyclePath));
             return;
         }
 

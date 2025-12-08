@@ -1,0 +1,105 @@
+@startuml
+
+interface DiscountPolicy {
+  test
+  --
+  + applyDiscount(double): double
+}
+
+abstract Base {
+  test
+  --
+  # id: long
+  --
+  + Base(): 
+  + getId(): long
+}
+
+class Notification {
+  test
+  --
+  - emailService: Email
+  --
+  + Notification(): 
+  + NotificationService(Email): void
+  + recordDelivery(String): void
+  + notifyPasswordReset(String): void
+}
+
+class UserAccount {
+  test
+  --
+  + displayName: String
+  - passwordHash: String
+  --
+  + UserAccount(long, String, String): 
+}
+
+class Customer {
+  test
+  --
+  - id: long
+  - firstName: String
+  - lastName: String
+  --
+  + Customer(long, String, String): 
+  + equals(Object): boolean
+}
+
+class OrderService {
+  test
+  --
+  + recentProducts: Product[]
+  - lastCustomer: Customer
+  --
+  + OrderService(): 
+  + processOrder(Customer, Product[]): void
+  + getLastCustomer(): Customer
+}
+
+interface BaseInterface {
+  test
+  --
+  + getId(): long
+}
+
+class Product {
+  test
+  --
+  + maxQuantity: int
+  - sku: String
+  - name: String
+  --
+  + Product(String, String): 
+  + hashCode(): int
+}
+
+class Email {
+  test
+  --
+  - notificationService: Notification
+  --
+  + Email(Notification): 
+  + sendEmail(String): void
+}
+
+class LoyaltyDiscountPolicy {
+  test
+  --
+  - threshold: int
+  --
+  + LoyaltyDiscountPolicy(int): 
+  + applyDiscount(double): double
+}
+
+' Relationships
+Base ..|> BaseInterface
+Notification --> Email
+UserAccount --|> Base
+UserAccount ..|> BaseInterface
+OrderService --> Customer
+OrderService -->"*" Product
+Email --> Notification
+LoyaltyDiscountPolicy ..|> DiscountPolicy
+
+@enduml

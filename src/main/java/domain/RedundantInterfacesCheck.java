@@ -29,8 +29,7 @@ public class RedundantInterfacesCheck implements LintCheck {
                 // Check if any of the class's declared interfaces are already in parent
                 for (String declaredInterface : classInfo.getInterfaces()) {
                     if (parentInterfaces.contains(declaredInterface)) {
-                        String message = "Interface '" + declaredInterface +
-                                "' is redundant (already implemented by superclass)";
+                        String message = "Interface '" + declaredInterface + "' is redundant (already implemented by superclass)";
                         violations.add(new Violation(getName(), classInfo.getName(), message));
                     }
                 }
@@ -50,10 +49,8 @@ public class RedundantInterfacesCheck implements LintCheck {
             }
 
             interfaces.addAll(superClass.getInterfaces());
-
             superClassName = superClass.getSuperClass();
         }
-
         return interfaces;
     }
 

@@ -78,7 +78,7 @@ public class GenerateUML implements LintCheck {
         Files.write(classFile, bytecode);
 
         // Execute genuml command
-        ProcessBuilder processBuilder = new ProcessBuilder("genuml", "generate", classFile.toString());
+        ProcessBuilder processBuilder=new ProcessBuilder("genuml", "generate", classFile.toString());
         processBuilder.redirectErrorStream(true);
         Process process = processBuilder.start();
 

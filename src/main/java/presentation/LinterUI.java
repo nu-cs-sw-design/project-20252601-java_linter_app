@@ -1,5 +1,6 @@
 package presentation;
 
+import domain.LintEngine;
 import domain.Violation;
 import java.util.List;
 
@@ -9,13 +10,17 @@ import java.util.List;
 public interface LinterUI {
 
     /**
-     * Runs the linter application.
-     * Handles user interaction, file loading, analysis, and result display.
-     */
-    void run();
-
-    /**
      * Displays the violations found during linting.
      */
     void displayResults(List<Violation> violations);
+
+    /**
+     * Prompts the user for the folder path.
+     */
+    String getFolderPath();
+
+    /**
+     * Configures the lint checks, asking and prompting the user and adding to the engine.
+     */
+    void configureChecks(LintEngine engine);
 }

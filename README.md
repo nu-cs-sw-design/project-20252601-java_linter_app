@@ -8,7 +8,8 @@ Anant Poddar, Aanand Patel
     - Java with JDK 11
     - ASM (ObjectWeb ASM library for bytecode analysis)
     - Gradle (for building and running the project)
-    - GenUML (for generating PlantUML diagrams; ensure it's installed using `pip install genuml` )
+    - Python3 and the associated pip package manager
+    - GenUML (for generating PlantUML diagrams; ensure it's installed using `pip install genuml`)
 
 ## Project Structure
 The project follows a standard Gradle structure with a focus on clean architecture (presentation, domain, datasource layers). Here's the high-level structure:

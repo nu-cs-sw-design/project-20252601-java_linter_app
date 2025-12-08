@@ -1,14 +1,8 @@
 package presentation;
 
-import datasource.DataLoader;
-import datasource.AsmConverter;
-import datasource.DataModelConverter;
+import domain.LintEngine;
 import domain.*;
-import domain.internal_representation.Context;
-
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -16,78 +10,23 @@ import java.util.Scanner;
  */
 public class ConsoleUI implements LinterUI {
 
-    private final LintEngine engine;
-    private final DataModelConverter converter;
-    private final DataLoader loader;
 
-    public ConsoleUI() {
-        this.engine = new LintEngine();
-        this.converter = new AsmConverter();
-        this.loader = new DataLoader();
-    }
-
-    @Override
-    public void run() {
+    /**
+     * Prompts the user for the folder path.
+     */
+    public String getFolderPath() {
         System.out.println("===========================================");
         System.out.println("  Java Linter");
         System.out.println("===========================================");
 
-        //Step 0: get the folder path
-        String folderPath;
-
         System.out.println("Please enter the path to compiled classes folder:");
         Scanner scanner = new Scanner(System.in);
-        folderPath = scanner.nextLine().trim();
-        if (folderPath.isEmpty()) {
-            System.err.println("No folder path provided. Exiting.");
-            System.exit(1);
-        }
-
-        System.out.println("Analyzing folder: " + folderPath);
-        System.out.println();
-
-        // Step 1: Load class files from folder
-        Map<String, byte[]> classFiles;
-        try {
-            System.out.println("Loading class files...");
-            classFiles = loader.loadClassFiles(folderPath);
-
-            if (classFiles.isEmpty()) {
-                System.err.println("Error: No .class files found in folder: " + folderPath);
-                System.err.println("Make sure you provided the compiled classes directory, not the source (java) directory.");
-                return;
-            }
-
-        } catch (IOException e) {
-            System.err.println("Error loading class files: " + e.getMessage());
-            return;
-        }
-
-        // Step 2: Get user input for which checks to run
-        configureChecks();
-
-        // Step 3: Create the context
-        System.out.println("Converting bytecode to internal representation...");
-        Context context;
-        try {
-            context = converter.buildContext(classFiles, folderPath);
-            System.out.println("Processed " + context.getClassCount() + " class(es)");
-            System.out.println();
-        } catch (Exception e) {
-            System.err.println("Error building context: " + e.getMessage());
-            e.printStackTrace();
-            return;
-        };
-
-        // Step 4: Run lint checks
-        System.out.println("Running lint checks...");
-        List<Violation> violations = engine.analyzeAll(context);
-        System.out.println();
-
-        // Step 5: Display results
-        displayResults(violations);
+        return scanner.nextLine().trim();
     }
 
+    /**
+     * Displays the violations found.
+     */
     @Override
     public void displayResults(List<Violation> violations) {
         System.out.println("===========================================");
@@ -111,9 +50,9 @@ public class ConsoleUI implements LinterUI {
     }
 
     /**
-     * Prompts the user to select which lint checks to run.
+     * Prompts the user to select which lint checks to run and adds them to the lint engine
      */
-    private void configureChecks() {
+    public void configureChecks(LintEngine engine) {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Available Lint Checks:");
@@ -128,13 +67,13 @@ public class ConsoleUI implements LinterUI {
         String input = scanner.nextLine().trim();
 
         if (input.equalsIgnoreCase("all")) {
-            addAllChecks();
+            addAllChecks(engine);
         } else {
             String[] selections = input.split(",");
             for (String selection : selections) {
                 try {
                     int checkNumber = Integer.parseInt(selection.trim());
-                    addCheck(checkNumber);
+                    addCheck(engine, checkNumber);
                 } catch (NumberFormatException e) {
                     System.err.println("Invalid input: " + selection);
                 }
@@ -149,7 +88,7 @@ public class ConsoleUI implements LinterUI {
     /**
      * Adds all available checks to the engine.
      */
-    private void addAllChecks() {
+    private void addAllChecks(LintEngine engine) {
         engine.addCheck(new EqualsHashCodeCheck());
         engine.addCheck(new PublicMutableFieldsCheck());
         engine.addCheck(new NamingConventionCheck());
@@ -159,9 +98,9 @@ public class ConsoleUI implements LinterUI {
     }
 
     /**
-     * Adds a specific check based on user selection.
+     * Adds a specific check to the engine based on user selection.
      */
-    private void addCheck(int checkNumber) {
+    private void addCheck(LintEngine engine, int checkNumber) {
         switch (checkNumber) {
             case 1:
                 engine.addCheck(new EqualsHashCodeCheck());

@@ -9,12 +9,16 @@ package "Presentation Layer"  {
 
     class ConsoleUI {
         - engine: LintEngine
-        - reader: BytecodeReader
+        - converter: DataModelConverter
+        - loader: DataLoader
         + run(): void
         + displayResults(violations: List<Violation>): void
-        - getUserInput(): LinterConfig
-        - readFileBytes(filePath: String): byte[]
+        - configureChecks(): void
     }
+
+    class Main {
+        + main(args: String[]): void
+      }
 }
 
 

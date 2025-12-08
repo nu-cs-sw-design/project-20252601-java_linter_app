@@ -21,6 +21,22 @@ import java.util.List;
  * Generates a PlantUML diagram for the entire package using GenUML.
  * Creates a .puml file in the specified folder path with all classes and their dependencies.
  */
+
+
+/**
+ We used Claude to generate some code for this class. We used the following command:
+ NOw help me write a GeneratePlantUmlCheck which generates the diagram for the enttire package whoch is stored in the context.
+ the context also has a string folderPath and its getter which is path where the .puml file must be created and writter to.
+ We have a libraryu which can genearte a plantuml code from each of the compiled class bytecode..(in context)...
+ i want you to loop through all of the bytes, generate the plantuml code to a common .puml file and use the dependency graph
+ to add the approapirate plantuml arrows. make sure that you follow plantuml syntax for the arrrows... the cli command
+ which i used to generate the plantuml code for a single class is
+
+ genuml generate compiled/class1.class > design.puml
+ use this and generate the check for me
+
+ */
+
 public class GenerateUML implements LintCheck {
 
     @Override

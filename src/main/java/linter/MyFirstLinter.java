@@ -82,6 +82,8 @@ public class MyFirstLinter {
                 + Type.getObjectType(classNode.name).getClassName());
         System.out.println("public? "
                 + ((classNode.access & Opcodes.ACC_PUBLIC) != 0));
+        System.out.println("interface? "
+                + ((classNode.access & Opcodes.ACC_INTERFACE) != 0));
         System.out.println("Extends: " + classNode.superName);
         System.out.println("Implements: " + classNode.interfaces);
         // TODO: how do I write a lint check to tell if this class has a bad name?

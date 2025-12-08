@@ -1,0 +1,36 @@
+@startuml
+
+class class1 {
+  targets
+  --
+  + x: int
+  + y: int
+  --
+  + class1(): 
+  + main(String[]): void
+  + foo(): int
+}
+
+interface interface1 {
+  targets
+  --
+}
+
+class class2 {
+  targets
+  --
+  + class2(): 
+}
+
+class class3 {
+  targets
+  --
+  + class3(): 
+}
+
+' Relationships
+class1 ..|> interface1
+class2 --|> class1
+class3 --|> class2
+
+@enduml

@@ -112,10 +112,10 @@ public class GenerateUML implements LintCheck {
         List<ClassInfo> classes = context.getClasses();
 
         for (ClassInfo fromClass : classes) {
-            String fromClassName = getSimpleClassName(fromClass.getName());
+            String fromClassName = fromClass.getName();
 
             for (ClassInfo toClass : classes) {
-                String toClassName = getSimpleClassName(toClass.getName());
+                String toClassName = toClass.getName();
                 DependencyType depType = dependencyInfo.getDependency(
                         fromClass.getName(), toClass.getName()
                 );

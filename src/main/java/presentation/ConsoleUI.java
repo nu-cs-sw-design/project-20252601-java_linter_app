@@ -4,10 +4,9 @@ import datasource.DataLoader;
 import datasource.AsmConverter;
 import datasource.DataModelConverter;
 import domain.*;
-import domain.internal_representation.ClassInfo;
+import domain.internal_representation.Context;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -50,22 +49,22 @@ public class ConsoleUI implements LinterUI {
             return;
         }
 
-        // Step 3: Convert bytes to ClassInfo objects
+        // Step 3: Create the context
         System.out.println("Converting bytecode to internal representation...");
-        List<ClassInfo> classes = new ArrayList<>();
-        for (Map.Entry<String, byte[]> entry : classFiles.entrySet()) {
-            try {
-                ClassInfo classInfo = converter.convertClass(entry.getValue());
-                classes.add(classInfo);
-            } catch (Exception e) {
-                System.err.println("Error processing " + entry.getKey() + ": " + e.getMessage());
-            }
-        }
-        System.out.println(classes);
+        Context context;
+        try {
+            context = converter.buildContext(classFiles, folderPath);
+            System.out.println("Processed " + context.getClassCount() + " class(es)");
+            System.out.println();
+        } catch (Exception e) {
+            System.err.println("Error building context: " + e.getMessage());
+            e.printStackTrace();
+            return;
+        };
 
         // Step 4: Run lint checks
         System.out.println("Running lint checks...");
-        List<Violation> violations = engine.analyzeAll(classes);
+        List<Violation> violations = engine.analyzeAll(context);
         System.out.println();
 
         // Step 5: Display results
@@ -105,7 +104,8 @@ public class ConsoleUI implements LinterUI {
         System.out.println("2. Public Mutable Fields Check - Detects public non-final fields");
         System.out.println("3. Naming Convention Check - Check if names obey conventions");
         System.out.println("4. Redundant Interfaces Check - Detects interfaces already implemented by superclass or ancestor classses");
-        System.out.println();
+        System.out.println("5. Circular Dependency Check - Detects circular dependencies between classes, either directly or indirectly");
+        System.out.println("6. Generate PlantUML - Generate PlantUML code for the given compiled classes");
         System.out.println("Select checks to run (comma-separated, e.g., 1,2,4) or 'all' for all checks:");
 
         String input = scanner.nextLine().trim();
@@ -137,6 +137,8 @@ public class ConsoleUI implements LinterUI {
         engine.addCheck(new PublicMutableFieldsCheck());
         engine.addCheck(new NamingConventionCheck());
         engine.addCheck(new RedundantInterfacesCheck());
+        engine.addCheck(new CircularDependencyCheck());
+        engine.addCheck(new GenerateUML());
     }
 
     /**
@@ -155,6 +157,12 @@ public class ConsoleUI implements LinterUI {
                 break;
             case 4:
                 engine.addCheck(new RedundantInterfacesCheck());
+                break;
+            case 5:
+                engine.addCheck(new CircularDependencyCheck());
+                break;
+            case 6:
+                engine.addCheck(new GenerateUML());
                 break;
             default:
                 System.err.println("  ✗ Invalid check number: " + checkNumber);

@@ -35,7 +35,6 @@ public class DataLoader {
                             classFiles.put(path.toString(), bytes);
                         } catch (IOException e) {
                             System.err.println("Error reading file: " + path);
-                            e.printStackTrace();
                         }
                     });
         }

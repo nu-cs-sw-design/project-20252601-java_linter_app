@@ -18,10 +18,10 @@ public abstract class PerClassLintCheck implements LintCheck {
      * This method is final to enforce the same traversal pattern for all checks.
      */
     @Override
-    public final List<Violation> analyze(List<ClassInfo> classes) {
+    public final List<Violation> analyze(Context context) {
         List<Violation> violations = new ArrayList<>();
 
-        for (ClassInfo classInfo : classes) {
+        for (ClassInfo classInfo : context.getClasses()) {
             // Check at class level
             Optional<Violation> classViolation = checkClass(classInfo);
             classViolation.ifPresent(violations::add);

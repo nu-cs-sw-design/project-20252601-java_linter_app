@@ -1,0 +1,12 @@
+@startuml
+class class2 {
+  targets
+  --
+  + class2(): 
+}
+
+class class1{
+}
+class1 ..> class2
+
+@enduml

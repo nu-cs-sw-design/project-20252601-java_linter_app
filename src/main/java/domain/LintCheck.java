@@ -1,7 +1,5 @@
 package domain;
 
-import domain.internal_representation.ClassInfo;
-import domain.Violation;
 import domain.internal_representation.Context;
 
 import java.util.List;

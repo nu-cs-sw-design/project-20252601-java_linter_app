@@ -26,7 +26,28 @@ public class AsmConverter implements DataModelConverter {
         this.adaptee = new AsmLibrary();
     }
 
+    @Override
+    public Context buildContext(Map<String, byte[]> classFiles, String folderPath) {
+
+        List<ClassInfo> classes = new ArrayList<>();
+        Map<String, byte[]> classBytecodeMap = new HashMap<>();
+
+        for (Map.Entry<String, byte[]> entry : classFiles.entrySet()) {
+            ClassInfo classInfo = convertClass(entry.getValue());
+            classes.add(classInfo);
+            classBytecodeMap.put(classInfo.getName(), entry.getValue());
+        }
+
+        DependencyInfo dependencyInfo = convertDependencies(classes);
+
+        return new Context(classes, dependencyInfo, folderPath, classBytecodeMap);
+    }
+
+    /**
+     * Analyzes all classes and builds the dependency information.
+     */
     public DependencyInfo convertDependencies(List<ClassInfo> classes) {
+        // Build index map for quick lookups
         Map<String, Integer> classNameToIndex = new HashMap<>();
         for (int i = 0; i < classes.size(); i++) {
             classNameToIndex.put(classes.get(i).getName(), i);
@@ -59,7 +80,8 @@ public class AsmConverter implements DataModelConverter {
             for (MethodInfo method : classInfo.getMethods()) {
                 // Check return type
                 String returnType = method.getReturnType();
-                if (returnType != null && !returnType.equals("void") && dependencyInfo.getClassIndex(returnType) != -1) {
+                if (returnType != null && !returnType.equals("void") &&
+                        dependencyInfo.getClassIndex(returnType) != -1) {
                     DependencyType currentType = dependencyInfo.getDependency(className, returnType);
                     if (currentType == DependencyType.NONE) {
                         dependencyInfo.setDependency(className, returnType, DependencyType.GENERAL);
@@ -82,30 +104,28 @@ public class AsmConverter implements DataModelConverter {
         return dependencyInfo;
     }
 
-    @Override
+
+    private String getSimpleName(String fullyQualifiedName) {
+        int lastDot = fullyQualifiedName.lastIndexOf('.');
+        return lastDot >= 0 ? fullyQualifiedName.substring(lastDot + 1) : fullyQualifiedName;
+    }
+
     public ClassInfo convertClass(byte[] bytes) {
         ClassNode classNode = adaptee.readClassNode(bytes);
 
         // Extract basic class information
-        String name = Type.getObjectType(classNode.name).getClassName();
-        String superClass = classNode.superName != null ?
-                Type.getObjectType(classNode.superName).getClassName() : null;
+        String name = getSimpleName(Type.getObjectType(classNode.name).getClassName());
+        String superClass = classNode.superName != null ? getSimpleName(Type.getObjectType(classNode.superName).getClassName()) : null;
         boolean isPublic = (classNode.access & Opcodes.ACC_PUBLIC) != 0;
 
         // Convert interfaces
-        List<String> interfaces = ((List<String>) classNode.interfaces).stream()
-                .map(iface -> Type.getObjectType(iface).getClassName())
-                .collect(Collectors.toList());
+        List<String> interfaces = ((List<String>) classNode.interfaces).stream().map(iface -> getSimpleName(Type.getObjectType(iface).getClassName())).collect(Collectors.toList());
 
         // Convert fields
-        List<FieldInfo> fields = adaptee.getFields(classNode).stream()
-                .map(fieldNode -> convertField(fieldNode, name))
-                .collect(Collectors.toList());
+        List<FieldInfo> fields = adaptee.getFields(classNode).stream().map(fieldNode -> convertField(fieldNode, name)).collect(Collectors.toList());
 
         // Convert methods
-        List<MethodInfo> methods = adaptee.getMethods(classNode).stream()
-                .map(methodNode -> convertMethod(methodNode, name))
-                .collect(Collectors.toList());
+        List<MethodInfo> methods = adaptee.getMethods(classNode).stream().map(methodNode -> convertMethod(methodNode, name)).collect(Collectors.toList());
 
         return new ClassInfo(name, fields, methods, interfaces, superClass, isPublic);
     }

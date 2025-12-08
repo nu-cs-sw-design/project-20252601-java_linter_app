@@ -61,7 +61,7 @@ public class MyFirstLinter {
             // Now we can navigate the classNode and look for things we are interested in.
             printClass(classNode);
 //
-//            printFields(classNode);
+//          printFields(classNode);
 //
             printMethods(classNode);
 
@@ -256,7 +256,10 @@ public class MyFirstLinter {
             MethodNode method = methods.get(i);
             determineChecks(method.name, "method_name");
 
+            System.out.println("local"+ method.localVariables);
             for (LocalVariableNode localVariable : method.localVariables) {
+                String varType = Type.getType(localVariable.desc).getClassName();
+                System.out.println("Local Variable: " + localVariable.name + " : " + varType);
                 determineChecks(localVariable.name, "local_variable_name");
             }
         }

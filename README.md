@@ -10,7 +10,6 @@ Anant Poddar, Aanand Patel
     - Gradle (for building and running the project)
     - GenUML (for generating PlantUML diagrams; ensure it's installed using `pip install genuml` )
 
-    
 ## Project Structure
 The project follows a standard Gradle structure with a focus on clean architecture (presentation, domain, datasource layers). Here's the high-level structure:
 
@@ -21,9 +20,6 @@ The project follows a standard Gradle structure with a focus on clean architectu
     - `src/main/java/test/`: Contains sample Java source files to be compiled and linted (see "Where Test Files Are Presented" below).
     - `src/main/java/compiled_test/`: Output directory for compiled `.class` files from the `test/` sources; this is where you point the linter.
 
-
-
-  
 ## How to Run the Whole Project
 1. **Build the Project**:
     - Run `./gradlew build` (or `gradlew.bat build` on Windows) to compile the linter.
@@ -36,6 +32,8 @@ The project follows a standard Gradle structure with a focus on clean architectu
     - If GenerateUML is selected, a `design.puml` file will be created in the input folder.
 
 You can provide absolute paths (e.g., `/Users/username/project/compiled_test`) as well.
+
+**IMP**: If you get an error saying 'Unsupported class file major version 65', make sure that you compile the .java files using the command provided in "Compiling Test Classes" section.
 
 ## Where Test Files Are Presented
 Test files (sample Java classes for linting) are located in `src/main/java/test/`. These are source `.java` files designed to demonstrate various lint issues, such as naming violations, circular dependencies, or redundant interfaces.

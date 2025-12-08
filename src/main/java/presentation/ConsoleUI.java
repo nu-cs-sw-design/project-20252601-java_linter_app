@@ -80,7 +80,7 @@ public class ConsoleUI implements LinterUI {
         System.out.println("===========================================");
 
         if (violations.isEmpty()) {
-            System.out.println("✓ No violations found! Code looks good.");
+            System.out.println("No violations found are found within the code");
         } else {
             System.out.println("Found " + violations.size() + " violation(s):\n");
 
@@ -104,8 +104,8 @@ public class ConsoleUI implements LinterUI {
         System.out.println("Available Lint Checks:");
         System.out.println("1. Equals/HashCode Check - Detects classes that override one but not both");
         System.out.println("2. Public Mutable Fields Check - Detects public non-final fields");
-        System.out.println("3. Naming Convention Check - Validates naming conventions");
-        System.out.println("4. Redundant Interfaces Check - Detects interfaces already implemented by superclass");
+        System.out.println("3. Naming Convention Check - Check if names obey conventions");
+        System.out.println("4. Redundant Interfaces Check - Detects interfaces already implemented by superclass or ancestor classses");
         System.out.println();
         System.out.println("Select checks to run (comma-separated, e.g., 1,2,4) or 'all' for all checks:");
 

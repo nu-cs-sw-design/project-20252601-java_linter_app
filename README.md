@@ -43,7 +43,7 @@ Test files (sample Java classes for linting) are located in `src/main/java/test/
 To use the compiled test classes:
 - Pass `src/main/java/compiled_test/test/` as the input folder when prompted during runtime.
 
-These test files are presented as examples to test the linter's functionality. You can add your own `.java` files here or in another directory for custom testing.
+These .java test files are presented as examples to test the linter's functionality. You can add your own `.java` files for custom testing.
 
 
 ## Compiling Test Classes

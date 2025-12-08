@@ -8,12 +8,12 @@ repositories {
 }
 
 apply plugin : "java"
-ext {
-    javaMainClass = "example.MyFirstLinter"
-}
 
+run {
+    standardInput = System.in
+}
 application {
-    mainClassName = javaMainClass
+    mainClassName = "presentation.Main"
 }
 
 sourceSets {

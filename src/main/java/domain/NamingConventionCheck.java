@@ -17,7 +17,7 @@ public class NamingConventionCheck extends PerClassLintCheck {
 
     @Override
     protected Optional<Violation> checkClass(ClassInfo classInfo) {
-        String name = getSimpleName(classInfo.getName());
+        String name = classInfo.getName();
 
         if (!beginsWithUppercase(name) || hasSpecialCharacter(name) || hasNumber(name)) {
             String message = "Class name '" + name + "' does not follow naming conventions " +
@@ -132,8 +132,4 @@ public class NamingConventionCheck extends PerClassLintCheck {
         return false;
     }
 
-    private String getSimpleName(String fullyQualifiedName) {
-        int lastDot = fullyQualifiedName.lastIndexOf('.');
-        return lastDot >= 0 ? fullyQualifiedName.substring(lastDot + 1) : fullyQualifiedName;
-    }
 }

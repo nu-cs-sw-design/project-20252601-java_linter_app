@@ -27,16 +27,14 @@ public class DataLoader {
         }
 
         try (Stream<Path> paths = Files.walk(folder)) {
-            paths.filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".class"))
-                    .forEach(path -> {
-                        try {
-                            byte[] bytes = Files.readAllBytes(path);
-                            classFiles.put(path.toString(), bytes);
-                        } catch (IOException e) {
-                            System.err.println("Error reading file: " + path);
-                        }
-                    });
+            paths.filter(Files::isRegularFile).filter(path->path.toString().endsWith(".class")).forEach(path->{
+                try {
+                    byte[] bytes = Files.readAllBytes(path);
+                    classFiles.put(path.toString(), bytes);
+                } catch (IOException e) {
+                    System.err.println("Error reading file: " + path);
+                }
+            });
         }
 
         return classFiles;

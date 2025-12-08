@@ -19,10 +19,8 @@ public class ConsoleUI implements LinterUI {
     private final LintEngine engine;
     private final DataModelConverter converter;
     private final DataLoader loader;
-    private final String folderPath;
 
-    public ConsoleUI(String folderPath) {
-        this.folderPath = folderPath;
+    public ConsoleUI() {
         this.engine = new LintEngine();
         this.converter = new AsmConverter();
         this.loader = new DataLoader();
@@ -33,21 +31,40 @@ public class ConsoleUI implements LinterUI {
         System.out.println("===========================================");
         System.out.println("  Java Linter");
         System.out.println("===========================================");
+
+        //Step 0: get the folder path
+        String folderPath;
+
+        System.out.println("Please enter the path to compiled classes folder:");
+        Scanner scanner = new Scanner(System.in);
+        folderPath = scanner.nextLine().trim();
+        if (folderPath.isEmpty()) {
+            System.err.println("No folder path provided. Exiting.");
+            System.exit(1);
+        }
+
         System.out.println("Analyzing folder: " + folderPath);
         System.out.println();
 
-        // Step 1: Get user input for which checks to run
-        configureChecks();
-
-        // Step 2: Load class files from folder
+        // Step 1: Load class files from folder
         Map<String, byte[]> classFiles;
         try {
             System.out.println("Loading class files...");
             classFiles = loader.loadClassFiles(folderPath);
+
+            if (classFiles.isEmpty()) {
+                System.err.println("Error: No .class files found in folder: " + folderPath);
+                System.err.println("Make sure you provided the compiled classes directory, not the source (java) directory.");
+                return;
+            }
+
         } catch (IOException e) {
             System.err.println("Error loading class files: " + e.getMessage());
             return;
         }
+
+        // Step 2: Get user input for which checks to run
+        configureChecks();
 
         // Step 3: Create the context
         System.out.println("Converting bytecode to internal representation...");

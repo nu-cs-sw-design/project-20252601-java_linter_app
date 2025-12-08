@@ -105,9 +105,9 @@ public class AsmConverter implements DataModelConverter {
     }
 
 
-    private String getSimpleName(String fullyQualifiedName) {
-        int lastDot = fullyQualifiedName.lastIndexOf('.');
-        return lastDot >= 0 ? fullyQualifiedName.substring(lastDot + 1) : fullyQualifiedName;
+    private String getSimpleName(String fullname) {
+        int lastDot = fullname.lastIndexOf('.');
+        return lastDot >= 0 ? fullname.substring(lastDot + 1):fullname;
     }
 
     public ClassInfo convertClass(byte[] bytes) {

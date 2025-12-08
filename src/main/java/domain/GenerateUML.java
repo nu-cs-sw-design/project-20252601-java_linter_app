@@ -146,10 +146,6 @@ public class GenerateUML implements LintCheck {
         }
     }
 
-    private String getSimpleClassName(String fullClassName) {
-        return fullClassName.substring(fullClassName.lastIndexOf('.') + 1);
-    }
-
     private void writePlantUmlFile(String folderPath, String content) throws IOException {
         Path outputPath = Paths.get(folderPath, "design.puml");
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputPath.toFile()))) {

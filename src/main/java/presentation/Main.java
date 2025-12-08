@@ -2,6 +2,9 @@ package presentation;
 
 import presentation.ConsoleUI;
 import presentation.LinterUI;
+
+import java.util.Scanner;
+
 /**
  * Main entry point for the Linter application.
  *
@@ -10,16 +13,9 @@ import presentation.LinterUI;
 public class Main {
 
     public static void main(String[] args) {
-        // make sure command args are provided
-        if (args.length == 0) {
-            printUsage();
-            System.exit(1);
-        }
-
-        String folderPath = args[0];
 
         // Create and run the console UI
-        LinterUI ui = new ConsoleUI(folderPath);
+        LinterUI ui = new ConsoleUI();
 
         try {
             ui.run();
@@ -37,7 +33,7 @@ public class Main {
         System.err.println("Usage: java linter.LinterMain <folder_path>");
         System.err.println();
         System.err.println("Arguments:");
-        System.err.println("  folder_path    Path to the folder containing .class files to analyze");
+        System.err.println("  folder_path    Path to the folder containing compiled Java files (.class files) to analyze");
         System.err.println();
         System.err.println("Example:");
         System.err.println("  java linter.LinterMain ./target/classes");

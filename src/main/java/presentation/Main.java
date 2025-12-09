@@ -18,7 +18,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        LintEngine engine = new LintEngine();
+
         DataModelConverter converter = new AsmConverter();
         DataLoader loader = new DataLoader();
         ConsoleUI ui = new ConsoleUI();
@@ -42,8 +42,10 @@ public class Main {
                 return;
             }
 
-            // Step 3: Configure checks via UI
-            ui.configureChecks(engine);
+            // Step 3: Get checks from user and instantiate engine with those checks
+            String input = ui.getChecksSelectionInput();
+            LintEngine engine = new LintEngine(input);
+
 
             // Step 4: Build context
             System.out.println("Converting bytecode to internal representation...");

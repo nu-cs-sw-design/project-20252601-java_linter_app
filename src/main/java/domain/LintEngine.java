@@ -9,30 +9,62 @@ import java.util.List;
  * Maintains a collection of checks and applies them to analyzed classes.
  */
 public class LintEngine {
-    private final List<LintCheck> checks;
+    private final List<LintCheck> checks = new ArrayList<>();
 
-    public LintEngine() {
-        this.checks = new ArrayList<>();
-    }
+    // new constructor
+    public LintEngine(String input) {
 
-    public void addCheck(LintCheck check) {
-        checks.add(check);
+        if (input.equalsIgnoreCase("all")) {
+            checks.add(new EqualsHashCodeCheck());
+            checks.add(new PublicMutableFieldsCheck());
+            checks.add(new NamingConventionCheck());
+            checks.add(new RedundantInterfacesCheck());
+            checks.add(new CircularDependencyCheck());
+            checks.add(new GenerateUML());
+            checks.add(new HasPublicConstructorCheck());
+            return;
+        }
+
+        String[] selections = input.split(",");
+        for (String selection : selections) {
+            switch (selection.trim()) {
+                case "1":
+                    checks.add(new EqualsHashCodeCheck());
+                    break;
+                case "2":
+                    checks.add(new PublicMutableFieldsCheck());
+                    break;
+                case "3":
+                    checks.add(new NamingConventionCheck());
+                    break;
+                case "4":
+                    checks.add(new RedundantInterfacesCheck());
+                    break;
+                case "5":
+                    checks.add(new CircularDependencyCheck());
+                    break;
+                case "6":
+                    checks.add(new GenerateUML());
+                    break;
+                case "7":
+                    checks.add(new HasPublicConstructorCheck());
+                    break;
+
+            }
+        }
+
     }
 
     public int getCheckCount() {
         return checks.size();
     }
 
-    /**
-     * Analyzes all given classes using all added checks.
-     */
     public List<Violation> analyzeAll(Context context) {
         List<Violation> allViolations = new ArrayList<>();
 
         for (LintCheck check : checks) {
             System.out.println("  Running: " + check.getName());
-            List<Violation> violations = check.analyze(context);
-            allViolations.addAll(violations);
+            allViolations.addAll(check.analyze(context));
         }
 
         return allViolations;

@@ -13,14 +13,20 @@ public class ClassInfo {
     private final List<String> interfaces;
     private final String superClass;
     private final boolean isPublic;
+    private final boolean isInterface;
+    private final boolean isAbstract;
+    private final boolean isEnum;
 
-    public ClassInfo(String name, List<FieldInfo> fields, List<MethodInfo> methods, List<String> interfaces, String superClass, boolean isPublic) {
+    public ClassInfo(String name, List<FieldInfo> fields, List<MethodInfo> methods, List<String> interfaces, String superClass, boolean isPublic , boolean isInterface, boolean isAbstract, boolean isEnum) {
         this.name = name;
         this.fields = fields;
         this.methods = methods;
         this.interfaces = interfaces;
         this.superClass = superClass;
         this.isPublic = isPublic;
+        this.isInterface = isInterface;
+        this.isAbstract = isAbstract;
+        this.isEnum = isEnum;
     }
 
     public String getName() {
@@ -45,6 +51,20 @@ public class ClassInfo {
 
     public boolean isPublic() {
         return isPublic;
+    }
+
+    public boolean isInterface() {
+        return isInterface;
+    }
+    public boolean isAbstract() {
+        return isAbstract;
+    }
+    public boolean isEnum() {
+        return isEnum;
+    }
+
+    public boolean isConcrete() {
+        return !isInterface && !isAbstract && !isEnum;
     }
 
     public boolean hasMethod(String name) {

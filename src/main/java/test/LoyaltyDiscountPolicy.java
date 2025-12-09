@@ -3,7 +3,7 @@ package test;
 public class LoyaltyDiscountPolicy implements DiscountPolicy {
 
     private int threshold;
-    public LoyaltyDiscountPolicy(int threshold) {
+   LoyaltyDiscountPolicy(int threshold) {
         this.threshold = threshold;
     }
 

@@ -5,15 +5,13 @@ package "Presentation Layer"  {
     interface LinterUI {
         ~ displayResults(violations: List<Violation>): void
         ~ getFolderPath(): String
-        ~ configureChecks(engine: LintEngine): void
+        ~ getChecksSelectionInput(): String
     }
 
     class ConsoleUI {
         + displayResults(violations: List<Violation>): void
         + getFolderPath(): String
-        + configureChecks(engine: LintEngine): void
-        - addAllChecks(engine: LintEngine): void
-        - addCheck(engine: LintEngine, checkNumber: int): void
+        + getChecksSelectionInput(): String
     }
 
     class Main {
@@ -32,12 +30,19 @@ package "Domain Layer"  {
             - interfaces: List<String>
             - superClass: String
             - isPublic: boolean
+            - isInterface: boolean
+            - isAbstract: boolean
+            - isEnum: boolean
             + getName(): String
             + getFields(): List<FieldInfo>
             + getMethods(): List<MethodInfo>
             + getInterfaces(): List<String>
             + getSuperClass(): String
             + isPublic(): boolean
+            + isInterface(): boolean
+            + isAbstract(): boolean
+            + isEnum(): boolean
+            + isConcrete(): boolean
             + hasMethod(name: String): boolean
         }
 
@@ -133,7 +138,7 @@ package "Domain Layer"  {
     }
 
     class HasPublicConstructorCheck{
-
+         # checkClass(classInfo: ClassInfo): Optional<Violation>
     }
 
     class NamingConventionCheck {
@@ -145,14 +150,23 @@ package "Domain Layer"  {
 
     class RedundantInterfacesCheck {
         + analyze(context: Context): List<Violation>
+        - collectParentInterfaces(ClassInfo classInfo, Map<String, ClassInfo> classMap): Set<String>
     }
 
     class CircularDependencyCheck {
         + analyze(context: Context): List<Violation>
+        - detectCycle(String currentClass, DependencyInfo dependencyInfo, List<ClassInfo> classes,
+        Set<String> visitedInPath, List<String> path, Set<String> globalVisited, List<Violation> violations)
     }
 
     class GenerateUML {
         + analyze(context: Context): List<Violation>
+        - generatePlantUmlDiagram(Context context): String
+        - generateClassDefinition(String className, byte[] bytecode, Path tempDir): String
+        - generateDependencyRelationships(Context context): String
+        - getPlantUmlArrow(DependencyType type): String
+        - writePlantUmlFile(String folderPath, String content): void
+        - deleteDirectory(File directory): void
     }
 
     class Violation {
@@ -167,7 +181,7 @@ package "Domain Layer"  {
 
     class LintEngine {
         - checks: List<LintCheck>
-        + addCheck(check: LintCheck): void
+        + LintEngine(String input)
         + getCheckCount(): int
         + analyzeAll(context: Context): List<Violation>
     }
@@ -233,6 +247,7 @@ NamingConventionCheck ..> FieldInfo
 NamingConventionCheck ..> LocalVariableInfo
 
 EqualsHashCodeCheck..> ClassInfo
+HasPublicConstructorCheck..> ClassInfo
 
 PublicMutableFieldsCheck..> FieldInfo
 
@@ -253,7 +268,7 @@ LintEngine ..> Context
 AsmConverter ..|> DataModelConverter
 AsmConverter --> AsmLibrary
 
-note right of PerClassLintCheck
+note bottom of PerClassLintCheck
 A defined traversal over the class, its methods and its fields.
 Children can override specific checks related to its behavior
 end note
@@ -264,9 +279,15 @@ note left of Main
 1. Get folder path via ConsoleUI
 2. Load .class files using DataLoader
 3. Build Context using DataModelConverter
-4. Configure checks via ConsoleUI
-5. Run LintEngine.analyzeAll(context)
+4. Get checks input via ConsoleUI
+5. Create and run LintEngine.analyzeAll(context)
 6. Display results via ConsoleUI
+end note
+
+note top of AsmConverter
+This class implements an Adapter that wraps
+an external library behind our internal objects so the domain
+layer never depends on third-party objects.
 end note
 
 @enduml

@@ -32,7 +32,7 @@ class UserAccount {
   + displayName: String
   - passwordHash: String
   --
-  + UserAccount(long, String, String): 
+  ~ UserAccount(long, String, String): 
 }
 
 class Customer {
@@ -70,7 +70,7 @@ class Product {
   - sku: String
   - name: String
   --
-  + Product(String, String): 
+  ~ Product(String, String): 
   + hashCode(): int
 }
 
@@ -79,7 +79,7 @@ class Email {
   --
   - notificationService: Notification
   --
-  + Email(Notification): 
+  ~ Email(Notification): 
   + sendEmail(String): void
 }
 
@@ -88,7 +88,7 @@ class LoyaltyDiscountPolicy {
   --
   - threshold: int
   --
-  + LoyaltyDiscountPolicy(int): 
+  ~ LoyaltyDiscountPolicy(int): 
   + applyDiscount(double): double
 }
 

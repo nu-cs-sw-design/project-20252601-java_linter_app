@@ -4,7 +4,7 @@ public class Email {
 
     private Notification notificationService;
 
-    public Email(Notification notificationService) {
+    Email(Notification notificationService) {
         this.notificationService = notificationService;
     }
 

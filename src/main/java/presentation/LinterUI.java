@@ -20,7 +20,7 @@ interface LinterUI {
     String getFolderPath();
 
     /**
-     * Configures the lint checks, asking and prompting the user and adding to the engine.
+     * Prompting the user to select the lint checks to run.
      */
-    void configureChecks(LintEngine engine);
+    String getChecksSelectionInput();
 }

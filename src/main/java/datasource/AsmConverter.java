@@ -141,6 +141,10 @@ public class AsmConverter implements DataModelConverter {
         String name = getSimpleName(Type.getObjectType(classNode.name).getClassName());
         String superClass = classNode.superName != null ? getSimpleName(Type.getObjectType(classNode.superName).getClassName()) : null;
         boolean isPublic = (classNode.access & Opcodes.ACC_PUBLIC) != 0;
+        boolean isInterface = (classNode.access & Opcodes.ACC_INTERFACE) != 0;
+        boolean isAbstract = (classNode.access & Opcodes.ACC_ABSTRACT) != 0;
+        boolean isEnum = (classNode.access & Opcodes.ACC_ENUM) != 0;
+
 
         // Convert interfaces
         List<String> interfaces = ((List<String>) classNode.interfaces).stream().map(iface -> getSimpleName(Type.getObjectType(iface).getClassName())).collect(Collectors.toList());
@@ -151,7 +155,7 @@ public class AsmConverter implements DataModelConverter {
         // Convert methods
         List<MethodInfo> methods = adaptee.getMethods(classNode).stream().map(methodNode -> convertMethod(methodNode, name)).collect(Collectors.toList());
 
-        return new ClassInfo(name, fields, methods, interfaces, superClass, isPublic);
+        return new ClassInfo(name, fields, methods, interfaces, superClass, isPublic, isInterface, isAbstract, isEnum);
     }
 
     /**

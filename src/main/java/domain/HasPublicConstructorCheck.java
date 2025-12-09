@@ -1,70 +1,52 @@
 package domain;
 
 import domain.internal_representation.ClassInfo;
-import domain.internal_representation.Context;
 import domain.internal_representation.MethodInfo;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * Checks if public classes have public constructors (either explicit or implicit).
- * A public class with no explicit constructor has an implicit public constructor.
- * A public class with an explicit public constructor violates this check.
+ * Checks if public classes expose public constructors (explicit or implicit).
  */
-public class HasPublicConstructorCheck implements LintCheck {
+public class HasPublicConstructorCheck extends PerClassLintCheck {
 
     @Override
-    public List<Violation> analyze(Context context) {
-        List<Violation> violations = new ArrayList<>();
-
-        for (ClassInfo classInfo : context.getClasses()) {
-            if (classInfo.isPublic()) {
-                checkPublicConstructor(classInfo, violations);
-            }
+    protected Optional<Violation> checkClass(ClassInfo classInfo) {
+        // Only care about public and concrete classes
+        if (!classInfo.isPublic() || !classInfo.isConcrete()) {
+            return Optional.empty();
         }
 
-        return violations;
-    }
-
-    private void checkPublicConstructor(ClassInfo classInfo, List<Violation> violations) {
         String className = classInfo.getName();
-        String simpleClassName = className.substring(className.lastIndexOf('.') + 1);
+        List<MethodInfo> methods = classInfo.getMethods();
 
-        List<MethodInfo> constructors = getConstructors(classInfo, simpleClassName);
+        boolean hasAnyConstructor = false;
+        boolean hasPublicConstructor = false;
 
-        if (constructors.isEmpty()) {
-            // No explicit constructor means implicit public constructor
-            violations.add(new Violation(
-                    getName(),
-                    className,
-                    "Public class has no explicit constructor, resulting in an implicit public constructor"
-            ));
-        } else {
-            // Check for explicit public constructors
-            for (MethodInfo constructor : constructors) {
-                if (constructor.isPublic()) {
-                    violations.add(new Violation(
-                            getName(),
-                            className,
-                            "Public class has an explicit public constructor: " + constructor.getName()
-                    ));
+        for (MethodInfo method : methods) {
+            // look at methods named "<init>"
+            if ("<init>".equals(method.getName())) {
+                hasAnyConstructor = true;
+                if (method.isPublic()) {
+                    hasPublicConstructor = true;
+                    break;
                 }
             }
         }
-    }
 
-    private List<MethodInfo> getConstructors(ClassInfo classInfo, String simpleClassName) {
-        List<MethodInfo> constructors = new ArrayList<>();
-
-        for (MethodInfo method : classInfo.getMethods()) {
-            // Constructors are named "<init>" in bytecode
-            if (method.getName().equals("<init>")) {
-                constructors.add(method);
-            }
+        // No explicit constructor
+        if (!hasAnyConstructor) {
+            String message = "Public class has no explicit constructor, resulting in an implicit public constructor.";
+            return Optional.of(new Violation(getName(), className, message));
         }
 
-        return constructors;
+        if (hasPublicConstructor) {
+            String message = "Public class has an explicit public constructor,allowing direct instantiation.";
+            return Optional.of(new Violation(getName(), className, message));
+        }
+
+        return Optional.empty();
     }
 
     @Override
@@ -74,7 +56,6 @@ public class HasPublicConstructorCheck implements LintCheck {
 
     @Override
     public String getDescription() {
-        return "Checks if public classes have public constructors (explicit or implicit). " +
-                "Public classes should not expose public constructors to prevent direct instantiation.";
+        return "Flags public classes that expose public constructors (explicit or implicit), to discourage direct instantiation.";
     }
 }

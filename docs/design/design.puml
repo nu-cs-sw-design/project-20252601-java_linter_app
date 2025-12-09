@@ -146,6 +146,11 @@ package "Domain Layer"  {
         # checkField(field: FieldInfo): Optional<Violation>
         # checkMethod(method: MethodInfo): Optional<Violation>
         # checkLocalVariable(variable: LocalVariableInfo, method: MethodInfo): Optional<Violation>
+        - beginsWithUppercase(String name): boolean
+        - beginsWithLowercase(String name): boolean
+        - hasAllUppercase(String name): boolean
+        - hasNumber(String name): boolean
+        - hasSpecialCharacter(String name): boolean
     }
 
     class RedundantInterfacesCheck {

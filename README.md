@@ -23,10 +23,10 @@ The project follows a standard Gradle structure with a focus on clean architectu
 
 ## How to Run the Whole Project
 1. **Build the Project**:
-    - Run `./gradlew build` (or `gradlew.bat build` on Windows) to compile the linter.
+    - Run `./gradlew build` (or `gradlew.bat build` on Windows) to compile the linter (in root directory) .
 
 2. **Run the Linter**:
-    - Run `./gradlew run` (or `gradlew.bat run` on Windows).
+    - Run `./gradlew run` (or `gradlew.bat run` on Windows) (in root directory).
     - When prompted, enter the path to a folder containing compiled `.class` files (e.g., `src/main/java/compiled_test/test/` for test classes).
     - Select lint checks by number (e.g., "1,3,5" or "all").
     - The linter will analyze the classes and display violations.

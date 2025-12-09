@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Interface for the linter user interface.
  */
-public interface LinterUI {
+interface LinterUI {
 
     /**
      * Displays the violations found during linting.

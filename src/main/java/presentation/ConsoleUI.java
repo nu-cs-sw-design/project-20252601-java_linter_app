@@ -8,13 +8,13 @@ import java.util.Scanner;
 /**
  * Console-based implementation of the LinterUI.
  */
-public class ConsoleUI implements LinterUI {
+class ConsoleUI implements LinterUI {
 
 
     /**
      * Prompts the user for the folder path.
      */
-    public String getFolderPath() {
+     String getFolderPath() {
         System.out.println("===========================================");
         System.out.println("  Java Linter");
         System.out.println("===========================================");

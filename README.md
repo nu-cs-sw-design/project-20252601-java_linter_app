@@ -67,3 +67,5 @@ The linter includes several checks implemented as classes in `src/main/java/doma
 5. **Circular Dependency Check**
 
 6. **Generate PlantUML** 
+
+7. **Public Constructor Check**

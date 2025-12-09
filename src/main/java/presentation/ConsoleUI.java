@@ -28,14 +28,13 @@ class ConsoleUI implements LinterUI {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Available Lint Checks:");
-        System.out.println("1. Equals/HashCode Check");
-        System.out.println("2. Public Mutable Fields Check");
-        System.out.println("3. Naming Convention Check");
-        System.out.println("4. Redundant Interfaces Check");
-        System.out.println("5. Circular Dependency Check");
-        System.out.println("6. Generate PlantUML");
-        System.out.println("7. Public Constructor Check");
-        System.out.println();
+        System.out.println("1. Equals/HashCode Check - Detects classes that override one but not both");
+        System.out.println("2. Public Mutable Fields Check - Detects public non-final fields");
+        System.out.println("3. Naming Convention Check - Check if names obey conventions");
+        System.out.println("4. Redundant Interfaces Check - Detects interfaces already implemented by superclass or ancestor classses");
+        System.out.println("5. Circular Dependency Check - Detects circular dependencies between classes, either directly or indirectly");
+        System.out.println("6. Generate PlantUML - Generate PlantUML code for the given compiled classes");
+        System.out.println("7. Public Constructor Check: Checks if public classes expose public constructors (explicit or implicit)");
         System.out.println("Select checks to run (comma-separated, e.g., 1,2,4) or 'all' for all checks:");
 
         String input = scanner.nextLine().trim();

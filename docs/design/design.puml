@@ -3,22 +3,22 @@
 
 package "Presentation Layer"  {
     interface LinterUI {
-        + run(): void
-        + displayResults(violations: List<Violation>): void
+        ~ displayResults(violations: List<Violation>): void
+        ~ getFolderPath(): String
+        ~ configureChecks(engine: LintEngine): void
     }
 
     class ConsoleUI {
-        - engine: LintEngine
-        - converter: DataModelConverter
-        - loader: DataLoader
-        + run(): void
         + displayResults(violations: List<Violation>): void
-        - configureChecks(): void
+        + getFolderPath(): String
+        + configureChecks(engine: LintEngine): void
+        - addAllChecks(engine: LintEngine): void
+        - addCheck(engine: LintEngine, checkNumber: int): void
     }
 
     class Main {
         + main(args: String[]): void
-      }
+    }
 }
 
 
@@ -35,6 +35,9 @@ package "Domain Layer"  {
             + getName(): String
             + getFields(): List<FieldInfo>
             + getMethods(): List<MethodInfo>
+            + getInterfaces(): List<String>
+            + getSuperClass(): String
+            + isPublic(): boolean
             + hasMethod(name: String): boolean
         }
 
@@ -42,11 +45,14 @@ package "Domain Layer"  {
             - name: String
             - className: String
             - returnType: String
-            - parameters: List<ParameterInfo>
             - isPublic: boolean
             - isStatic: boolean
             - localVariables: List<LocalVariableInfo>
             + getName(): String
+            + getClassName(): String
+            + getReturnType(): String
+            + isPublic(): boolean
+            + isStatic(): boolean
             + getLocalVariables(): List<LocalVariableInfo>
         }
 
@@ -57,6 +63,8 @@ package "Domain Layer"  {
             - isPublic: boolean
             - isFinal: boolean
             + getName(): String
+            + getClassName(): String
+            + getType(): String
             + isPublic(): boolean
             + isFinal(): boolean
         }
@@ -65,130 +73,200 @@ package "Domain Layer"  {
             - name: String
             - type: String
             + getName(): String
+            + getType(): String
         }
 
-        class ParameterInfo {
-            - name: String
-            - type: String
-            + getName(): String
+        class Context {
+            - classes: List<ClassInfo>
+            - dependencyInfo: DependencyInfo
+            - folderPath: String
+            - classBytecode: Map<String, byte[]>
+            + getClasses(): List<ClassInfo>
+            + getDependencyInfo(): DependencyInfo
+            + getFolderPath(): String
+            + getClassBytecode(className: String): byte[]
+            + getBytecodeMap(): Map<String, byte[]>
+            + getClassCount(): int
+        }
+
+        class DependencyInfo {
+            - adjacencyMatrix: DependencyType[][]
+            - classNameToIndex: Map<String, Integer>
+            - size: int
+            + getDependency(fromClass: String, toClass: String): DependencyType
+            + setDependency(fromClass: String, toClass: String, type: DependencyType): void
+            + getClassIndex(className: String): int
+            + getSize(): int
+        }
+
+        enum DependencyType {
+            NONE
+            IS_A
+            HAS_A
+            IMPLEMENTS
+            GENERAL
+            HAS_MANY
         }
     }
 
     interface LintCheck  {
-        + analyze(classes: List<ClassInfo>): List<Violation>
+        + analyze(context: Context): List<Violation>
         + getName(): String
         + getDescription(): String
     }
 
 
     abstract class PerClassLintCheck <<Template Method>> {
-        + {final} analyze(classes: List<ClassInfo>): List<Violation>
-        --
-        <b>Traversal Hook Methods:</b>
-                # checkClass(classInfo: ClassInfo): Optional<Violation>
-                # checkField(field: FieldInfo): Optional<Violation>
-                # checkMethod(method: MethodInfo): Optional<Violation>
-                # checkLocalVariable(variable: LocalVariableInfo, method: MethodInfo):
-    }
+        + {final} analyze(context: Context): List<Violation>
+        # checkClass(classInfo: ClassInfo): Optional<Violation>
+        # checkField(field: FieldInfo): Optional<Violation>
+        # checkMethod(method: MethodInfo): Optional<Violation>
+        # checkLocalVariable(variable: LocalVariableInfo, method: MethodInfo): Optional<Violation>
+}
 
     class EqualsHashCodeCheck {
-        - hasEquals: boolean
-        - hasHashCode: boolean
-
-        # checkMethod(method: MethodInfo): List<Violation>
+        # checkClass(classInfo: ClassInfo): Optional<Violation>
     }
 
     class PublicMutableFieldsCheck {
-        - problematicFields: Set<String>
-        # checkField(field: FieldInfo): List<Violation>
+        # checkField(field: FieldInfo): Optional<Violation>
+    }
+
+    class HasPublicConstructorCheck{
+
     }
 
     class NamingConventionCheck {
-        - problematicNames: Set<String>
-        # checkClass(classInfo: ClassInfo): List<Violation>
-        # checkField(field: FieldInfo): List<Violation>
-        # checkMethod(method: MethodInfo):List<Violation>
-        # checkLocalVariable(variable: LocalVariableInfo, method: MethodInfo):
-
+        # checkClass(classInfo: ClassInfo): Optional<Violation>
+        # checkField(field: FieldInfo): Optional<Violation>
+        # checkMethod(method: MethodInfo): Optional<Violation>
+        # checkLocalVariable(variable: LocalVariableInfo, method: MethodInfo): Optional<Violation>
     }
 
     class RedundantInterfacesCheck {
-        - interfaceCache: Map<String, Set<String>>
-        + analyze(classes: List<ClassInfo>): List<Violation>
-        + getName(): String
-        + getDescription(): String
+        + analyze(context: Context): List<Violation>
+    }
+
+    class CircularDependencyCheck {
+        + analyze(context: Context): List<Violation>
+    }
+
+    class GenerateUML {
+        + analyze(context: Context): List<Violation>
     }
 
     class Violation {
-        - checkName: String
-        - className: String
-        - message: String
+        - {final} checkName: String
+        - {final} className: String
+        - {final} message: String
+        + getCheckName(): String
+        + getClassName(): String
+        + getMessage(): String
         + toString(): String
     }
 
     class LintEngine {
         - checks: List<LintCheck>
         + addCheck(check: LintCheck): void
-        + analyzeAll(classes: List<ClassInfo>): List<Violation>
+        + getCheckCount(): int
+        + analyzeAll(context: Context): List<Violation>
     }
 }
 
 
 package "Data Source Layer" {
 
-    interface BytecodeReader <<Target>> {
-        + convertClass(bytes: byte[]): ClassInfo
+    interface DataModelConverter <<Target>> {
+        + buildContext(classFiles: Map<String, byte[]>, folderPath: String): Context
     }
 
-    class AsmBytecodeReader <<Adapter>> {
+    class AsmConverter <<Adapter>> {
         - adaptee: AsmLibrary
-        + convertClass(bytes: byte[]): ClassInfo
+        + buildContext(classFiles: Map<String, byte[]>, folderPath: String): Context
     }
 
     class AsmLibrary <<Adaptee>> {
-        + readClassNode(bytes: byte[]): ClassNode
-        + getFields(classNode: ClassNode): List<FieldNode>
-        + getMethods(classNode: ClassNode): List<MethodNode>
+        ~ readClassNode(bytes: byte[]): ClassNode
+        ~ getFields(classNode: ClassNode): List<FieldNode>
+        ~ getMethods(classNode: ClassNode): List<MethodNode>
+    }
+
+    class DataLoader {
+        + loadClassFiles(folderPath: String): Map<String, byte[]>
     }
 }
 
 
-LinterUI <|.. ConsoleUI
-ConsoleUI --> LintEngine
-ConsoleUI --> BytecodeReader
+ConsoleUI ..|> LinterUI
+Main --> ConsoleUI
+Main --> LintEngine
+Main --> DataModelConverter
+Main --> DataLoader
 
 
-ClassInfo *-- MethodInfo
-ClassInfo *-- FieldInfo
-MethodInfo *-- LocalVariableInfo
-MethodInfo *-- ParameterInfo
+ClassInfo -->"*" MethodInfo
+ClassInfo -->"*" FieldInfo
+MethodInfo -->"*" LocalVariableInfo
+Context -->"*" ClassInfo
+Context --> DependencyInfo
 
-LintCheck <|.. PerClassLintCheck
-PerClassLintCheck <|-- EqualsHashCodeCheck
-PerClassLintCheck <|-- PublicMutableFieldsCheck
-PerClassLintCheck <|-- NamingConventionCheck
+PerClassLintCheck ..|> LintCheck
+EqualsHashCodeCheck --|> PerClassLintCheck
+PublicMutableFieldsCheck --|> PerClassLintCheck
+NamingConventionCheck --|> PerClassLintCheck
+RedundantInterfacesCheck ..|> LintCheck
+CircularDependencyCheck ..|> LintCheck
+GenerateUML ..|> LintCheck
+HasPublicConstructorCheck --|> PerClassLintCheck
 
-LintCheck <|.. RedundantInterfacesCheck
+LintCheck..> Violation
+EqualsHashCodeCheck..> Violation
+PublicMutableFieldsCheck..> Violation
+NamingConventionCheck..> Violation
+RedundantInterfacesCheck..> Violation
+CircularDependencyCheck..> Violation
+GenerateUML..> Violation
 
-LintEngine o-- LintCheck
-LintEngine --> Violation
-LintEngine --> ClassInfo
+NamingConventionCheck ..> ClassInfo
+NamingConventionCheck ..> MethodInfo
+NamingConventionCheck ..> FieldInfo
+NamingConventionCheck ..> LocalVariableInfo
 
-BytecodeReader <|.. AsmBytecodeReader
-AsmBytecodeReader o-- AsmLibrary
+EqualsHashCodeCheck..> ClassInfo
+
+PublicMutableFieldsCheck..> FieldInfo
+
+GenerateUML..> Context
+RedundantInterfacesCheck..> Context
+CircularDependencyCheck..> Context
+LintCheck..> Context
+
+DependencyInfo -->"*" DependencyType
+
+AsmConverter ..> Context
+DataModelConverter ..> Context
+
+LintEngine -->"*" LintCheck
+LintEngine ..> Violation
+LintEngine ..> Context
+
+AsmConverter ..|> DataModelConverter
+AsmConverter --> AsmLibrary
 
 note right of PerClassLintCheck
 A defined traversal over the class, its methods and its fields.
-Chidlren can override specific checks related to its behavior
+Children can override specific checks related to its behavior
 end note
 
 
-
-note left of ConsoleUI
+note left of Main
 <b>Flow:</b>
-1. Read .class bytes from user paths
-2. For each file, call reader.convertClass(bytes) -> ClassInfo
-3. Pass all ClassInfo objects to LintEngine.analyzeAll(...)
+1. Get folder path via ConsoleUI
+2. Load .class files using DataLoader
+3. Build Context using DataModelConverter
+4. Configure checks via ConsoleUI
+5. Run LintEngine.analyzeAll(context)
+6. Display results via ConsoleUI
 end note
 
 @enduml
